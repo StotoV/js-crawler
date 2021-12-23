@@ -7,7 +7,8 @@ describe('executor', () => {
 
   const executorOptions = {
     maxRatePerSecond: 5,
-    maxConcurrentTasks: 10
+    maxConcurrentTasks: 10,
+    urlTimeout: 5000
   };
   const values = [1, 2, 3, 4];
   let producedValues: Array<number>;

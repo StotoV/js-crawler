@@ -24,7 +24,8 @@ export default class Crawler {
   createExecutor(): Executor {
     return new AsynchronousExecutor({
       maxRatePerSecond: this.configuration.options.maxRequestsPerSecond,
-      maxConcurrentTasks: this.configuration.options.maxConcurrentRequests
+      maxConcurrentTasks: this.configuration.options.maxConcurrentRequests,
+      urlTimeout: this.configuration.options.urlTimeout
     });
   }
 
@@ -75,7 +76,7 @@ export default class Crawler {
         }
 
         return this.createRequest(referer, url).submit()
-            .then((success: RequestSuccess) => {
+        .then((success: RequestSuccess) => {
     
           if (this.state.isVisitedUrl(url)) {
             //Was already crawled while the request has been processed, no need to call callbacks
@@ -116,6 +117,8 @@ export default class Crawler {
           });
           this.state.rememberCrawledUrl(url);
         }).then(() => {
+          this.state.finishedCrawling(url);
+        }).catch(() => {
           this.state.finishedCrawling(url);
         });
       });

@@ -6,7 +6,8 @@ export type ExecutableTask = () => Promise<void>
 
 export interface ExecutorOptions {
   maxRatePerSecond: number,
-  maxConcurrentTasks: number
+  maxConcurrentTasks: number,
+  urlTimeout: number
 }
 
 export interface Executor {
@@ -18,15 +19,16 @@ export interface Executor {
 export default class AsynchronousExecutor implements Executor {
   maxRatePerSecond: number;
   maxConcurrentTasks: number;
+  promiseTimeout: number;
   concurrentTaskNumber: number;
   queue: Array<ExecutableTask>;
   isStopped: boolean;
   timeoutMs: number;
 
-  constructor({maxRatePerSecond, maxConcurrentTasks}: ExecutorOptions) {
+  constructor({maxRatePerSecond, maxConcurrentTasks, urlTimeout}: ExecutorOptions) {
     this.maxRatePerSecond = maxRatePerSecond;
     this.maxConcurrentTasks = maxConcurrentTasks || Number.MAX_VALUE;
-    this.promiseTimeout = 5000;
+    this.promiseTimeout = urlTimeout;
     this.concurrentTaskNumber = 0;
     this.queue = [];
     this.isStopped = false;
@@ -61,13 +63,12 @@ export default class AsynchronousExecutor implements Executor {
         let timeout = new Promise((resolve, reject) => {
             let id = setTimeout(() => {
                 clearTimeout(id);
-                reject('Timed out in '+ this.promiseTimeout + 'ms.')
+                resolve('Timed out in '+ this.promiseTimeout + 'ms.')
             }, this.promiseTimeout)
         })
         let execution = nextExecution()
 
-        // Returns a race between our timeout and the passed in promise
-        return Promise.race([
+        Promise.race([
             execution,
             timeout
         ]).then(() => {

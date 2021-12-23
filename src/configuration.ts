@@ -21,6 +21,7 @@ export interface CrawlOptions {
   userAgent?: string;
   maxConcurrentRequests?: number;
   maxRequestsPerSecond?: number;
+  urlTimeout?: number;
   shouldCrawl?: (url: string) => boolean;
   shouldCrawlLinksFrom?: (url: string) => boolean;
 }
@@ -36,6 +37,7 @@ export type ConfigurationOptions = CrawlOptions & CrawlCallbacks;
 const DEFAULT_DEPTH = 2;
 const DEFAULT_MAX_CONCURRENT_REQUESTS = 10;
 const DEFAULT_MAX_REQUESTS_PER_SECOND = 100;
+const DEFAULT_URL_TIMEOUT = 5000;
 const DEFAULT_USERAGENT = 'crawler/js-crawler';
 
 export const DEFAULT_OPTIONS: ConfigurationOptions = {
@@ -44,6 +46,7 @@ export const DEFAULT_OPTIONS: ConfigurationOptions = {
   userAgent: DEFAULT_USERAGENT,
   maxConcurrentRequests: DEFAULT_MAX_CONCURRENT_REQUESTS,
   maxRequestsPerSecond: DEFAULT_MAX_REQUESTS_PER_SECOND,
+  urlTimeout: DEFAULT_URL_TIMEOUT,
   shouldCrawl: url => true,
   shouldCrawlLinksFrom: url => true,
   success: _.noop,
@@ -71,16 +74,21 @@ export default class Configuration {
       'userAgent',
       'maxConcurrentRequests',
       'maxRequestsPerSecond',
+      'urlTimeout',
       'shouldCrawl',
       'shouldCrawlLinksFrom'
     ]);
   }
 
   get crawlingBehavior(): UrlCrawlingBehavior {
-    return _.pick(this.config, [
-      'ignoreRelative',
-      'shouldCrawl'
-    ]);
+      return {
+          ignoreRelative: this.config.ignoreRelative,
+          shouldCrawl: this.config.shouldCrawl
+      }
+    // return _.pick(this.config, [
+    //   'ignoreRelative',
+    //   'shouldCrawl'
+    // ]);
   }
 
   get callbacks(): CrawlCallbacks {
