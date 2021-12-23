@@ -26,6 +26,7 @@ export default class AsynchronousExecutor implements Executor {
   constructor({maxRatePerSecond, maxConcurrentTasks}: ExecutorOptions) {
     this.maxRatePerSecond = maxRatePerSecond;
     this.maxConcurrentTasks = maxConcurrentTasks || Number.MAX_VALUE;
+    this.promiseTimeout = 5000;
     this.concurrentTaskNumber = 0;
     this.queue = [];
     this.isStopped = false;
@@ -56,7 +57,20 @@ export default class AsynchronousExecutor implements Executor {
       if (this.queue.length !== 0) {
         const nextExecution = this.queue.shift();
         this.concurrentTaskNumber++;
-        nextExecution().then(() => {
+
+        let timeout = new Promise((resolve, reject) => {
+            let id = setTimeout(() => {
+                clearTimeout(id);
+                reject('Timed out in '+ this.promiseTimeout + 'ms.')
+            }, this.promiseTimeout)
+        })
+        let execution = nextExecution()
+
+        // Returns a race between our timeout and the passed in promise
+        return Promise.race([
+            execution,
+            timeout
+        ]).then(() => {
           this.concurrentTaskNumber--;
         });
       }
