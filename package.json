@@ -37,6 +37,7 @@
     "webpack": "^4.1.0"
   },
   "scripts": {
+    "prepage": "npm run build",
     "build": "tsc -p .",
     "lint": "tslint -c tslint.json crawler.ts src/*.ts spec/*.ts",
     "test": "karma start",
